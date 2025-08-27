@@ -95,15 +95,17 @@ public class Filter extends OncePerRequestFilter {
             return true;
         }
 
-        // System public endpoints
-        List<String> systemPublicEndpoints = List.of(
-                "/swagger-ui/**",
-                "/v3/api-docs/**",
-                "/swagger-resources/**",
-                "/webjars/**",
-                "/login/oauth2/code/**",
-                "/oauth2/authorization/**"
-        );
+
+    // System public endpoints
+    List<String> systemPublicEndpoints = List.of(
+        "/swagger-ui/**",
+        "/v3/api-docs/**",
+        "/swagger-resources/**",
+        "/webjars/**",
+        "/login/oauth2/code/**",
+        "/oauth2/authorization/**",
+        "/graphiql"
+    );
 
         return systemPublicEndpoints.stream()
                 .anyMatch(pattern -> pathMatcher.match(pattern, uri));

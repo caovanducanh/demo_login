@@ -1,0 +1,22 @@
+type User {
+    id: ID!
+    username: String!
+    email: String!
+    fullName: String
+    status: String
+    roles: [String]
+}
+
+type Query {
+    users: [User]
+    userById(id: ID!): User
+}
+
+
+input UserInput {
+    username: String!
+    email: String!
+    fullName: String
+    status: String
+    roles: [String]
+}

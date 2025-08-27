@@ -1,5 +1,7 @@
 package com.example.demologin.config;
 
+import static org.springframework.security.config.Customizer.withDefaults;
+
 import com.example.demologin.service.AuthenticationService;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.OpenAPI;
@@ -53,8 +55,9 @@ public class SecurityConfig {
         // Lấy danh sách các public endpoints từ annotation @PublicEndpoint
         List<String> annotatedPublicEndpoints = publicEndpointHandlerMapping.getPublicEndpoints();
         
-        return http
-                .csrf(AbstractHttpConfigurer::disable)
+    return http
+        .cors(withDefaults())
+        .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> {
                     // Cho phép preflight requests
                     auth.requestMatchers(CorsUtils::isPreFlightRequest).permitAll();
@@ -64,17 +67,20 @@ public class SecurityConfig {
                         auth.requestMatchers(annotatedPublicEndpoints.toArray(new String[0])).permitAll();
                     }
                     
-                    // Các endpoint hệ thống cần permit all (không thể dùng annotation)
-                    auth.requestMatchers(
-                            // Swagger/OpenAPI documentation
-                            "/swagger-ui/**",
-                            "/v3/api-docs/**", 
-                            "/swagger-resources/**",
-                            "/webjars/**",
-                            // OAuth2 system endpoints (Spring Security tự động tạo)
-                            "/login/oauth2/code/**",
-                            "/oauth2/authorization/**"
-                    ).permitAll();
+
+            // Các endpoint hệ thống cần permit all (không thể dùng annotation)
+            auth.requestMatchers(
+                // Swagger/OpenAPI documentation
+                "/swagger-ui/**",
+                "/v3/api-docs/**", 
+                "/swagger-resources/**",
+                "/webjars/**",
+                // OAuth2 system endpoints (Spring Security tự động tạo)
+                "/login/oauth2/code/**",
+                "/oauth2/authorization/**",
+                // GraphQL
+                "/graphiql"
+            ).permitAll();
                     
                     // Tất cả các API endpoints khác cần authentication
                     // Filter sẽ handle JWT validation + dynamic permission với @SecuredEndpoint
