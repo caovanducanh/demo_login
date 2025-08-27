@@ -79,7 +79,9 @@ public class SecurityConfig {
                 "/login/oauth2/code/**",
                 "/oauth2/authorization/**",
                 // GraphQL
-                "/graphiql"
+                "/graphiql",
+                "/graphql",
+                "/favicon.ico"
             ).permitAll();
                     
                     // Tất cả các API endpoints khác cần authentication
