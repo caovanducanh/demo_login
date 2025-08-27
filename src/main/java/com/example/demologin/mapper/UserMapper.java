@@ -1,4 +1,5 @@
 package com.example.demologin.mapper;
+import com.example.demologin.entity.Role;
 
 import com.example.demologin.dto.request.user.UserRequest;
 import com.example.demologin.dto.response.LoginResponse;
@@ -11,20 +12,21 @@ import org.springframework.stereotype.Component;
 @Component
 public class UserMapper {
     public MemberResponse toUserResponse(User user) {
-        // Lấy role đầu tiên nếu có
-        String roleName = user.getRoles().stream().findFirst().map(r -> r.getName()).orElse("");
-        return new MemberResponse(
-                user.getUserId(),
-                user.getUsername(),
-                user.getEmail(),
-                user.getIdentityCard(),
-                user.getFullName(),
-                user.getPhone(),
-                user.getAddress(),
-                user.getDateOfBirth(),
-                user.getStatus(),
-                roleName
-        );
+    java.util.List<String> roleNames = user.getRoles().stream()
+        .map(Role::getName)
+        .collect(java.util.stream.Collectors.toList());
+    return new MemberResponse(
+        user.getUserId(),
+        user.getUsername(),
+        user.getEmail(),
+        user.getIdentityCard(),
+        user.getFullName(),
+        user.getPhone(),
+        user.getAddress(),
+        user.getDateOfBirth(),
+        user.getStatus(),
+        roleNames
+    );
     }
     public static User toEntity(UserRequest userRequest) {
         User user = new User(

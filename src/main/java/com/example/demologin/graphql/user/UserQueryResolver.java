@@ -1,6 +1,7 @@
 package com.example.demologin.graphql.user;
+import com.example.demologin.dto.response.ResponseObject;
+import com.example.demologin.mapper.UserMapper;
 
-import com.example.demologin.entity.User;
 import com.example.demologin.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,34 +10,30 @@ import org.springframework.graphql.data.method.annotation.MutationMapping;
 import org.springframework.graphql.data.method.annotation.QueryMapping;
 import org.springframework.stereotype.Controller;
 
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Controller
 @RequiredArgsConstructor
 public class UserQueryResolver {
-
     private final UserService userService;
+    private final UserMapper userMapper;
 
     @QueryMapping
-    public List<UserDto> users() {
-        return userService.findAll().stream().map(this::toDto).collect(Collectors.toList());
+    public ResponseObject users(@Argument(name = "page") Integer page, @Argument(name = "size") Integer size) {
+        int pageNum = page != null ? page : 0;
+        int pageSize = size != null ? size : 20;
+        var pageResult = userService.getAllUsers(pageNum, pageSize);
+        var users = pageResult.getContent();
+        return new ResponseObject(200, "Success", users);
     }
+
 
     @QueryMapping
-    public UserDto userById(@Argument Long id) {
-        return userService.findById(id).map(this::toDto).orElse(null);
+    public ResponseObject userById(@Argument Long id) {
+        var member = userService.findById(id)
+            .map(userMapper::toUserResponse)
+            .orElse(null);
+        return new ResponseObject(200, member != null ? "Success" : "Not found", member);
     }
 
 
-    private UserDto toDto(User user) {
-        UserDto dto = new UserDto();
-        dto.setId(user.getUserId());
-        dto.setUsername(user.getUsername());
-        dto.setEmail(user.getEmail());
-        dto.setFullName(user.getFullName());
-        dto.setStatus(user.getStatus() != null ? user.getStatus().name() : null);
-        dto.setRoles(user.getRoles() != null ? user.getRoles().stream().map(r -> r.getName()).collect(Collectors.toList()) : null);
-        return dto;
-    }
 }

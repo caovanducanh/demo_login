@@ -7,9 +7,21 @@ type User {
     roles: [String]
 }
 
+type UserListResponseObject {
+    statusCode: Int
+    message: String
+    data: [User]
+}
+
+type UserResponseObject {
+    statusCode: Int
+    message: String
+    data: User
+}
+
 type Query {
-    users: [User]
-    userById(id: ID!): User
+    users(page: Int = 0, size: Int = 20): UserListResponseObject
+    userById(id: ID!): UserResponseObject
 }
 
 
