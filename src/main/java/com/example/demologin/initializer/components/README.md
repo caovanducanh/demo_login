@@ -14,10 +14,16 @@ This folder contains modular initialization components that are orchestrated by 
 - **Dependencies**: PermissionRoleInitializer (needs roles)
 - **Output**: admin and member users with assigned roles
 
+### 🏢 BranchDataInitializer
+- **Purpose**: Creates branch system data
+- **Dependencies**: PermissionRoleInitializer (needs roles for test user)
+- **Output**: HCM & HN branches, allowed emails, test user
+
 ## 🔄 Execution Order
 
 1. **PermissionRoleInitializer** - Creates permissions and roles
 2. **DefaultUserInitializer** - Creates users with roles
+3. **BranchDataInitializer** - Creates branches and test user
 
 ## ➕ Adding New Components
 

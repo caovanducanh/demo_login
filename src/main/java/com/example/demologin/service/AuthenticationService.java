@@ -15,5 +15,6 @@ public interface AuthenticationService extends UserDetailsService {
     LoginResponse authenticateWithOAuth2FromAuthentication(org.springframework.security.core.Authentication authentication);
     LoginResponse authenticateWithFacebook(FacebookLoginRequest request);
     LoginResponse getUserResponse(String email, String name);
+    LoginResponse getUserResponse(String email, String name, String branchCode);
     void handleOAuth2Failure();
 }

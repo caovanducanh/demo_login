@@ -49,6 +49,13 @@ public class PermissionRoleInitializer {
 
     private static final String USER_VIEW_OWN_LOGIN_HISTORY = "USER_VIEW_OWN_LOGIN_HISTORY";
 
+    // Branch permissions
+    private static final String BRANCH_VIEW = "BRANCH_VIEW";
+    private static final String BRANCH_CREATE = "BRANCH_CREATE";
+    private static final String BRANCH_UPDATE = "BRANCH_UPDATE";
+    private static final String BRANCH_DELETE = "BRANCH_DELETE";
+    private static final String BRANCH_READ = "BRANCH_READ";
+
     @Transactional
     public void initializePermissionsAndRoles() {
         log.info("🔑 Initializing system permissions and roles...");
@@ -85,7 +92,14 @@ public class PermissionRoleInitializer {
                 new Permission(LOG_VIEW_ACTIVITY, "Xem user activity logs"),
                 new Permission(ADMIN_ACTIVITY_LOG_EXPORT, "Export user activity logs"),
                 new Permission(LOG_DELETE, "Xóa user activity logs"),
-                new Permission(USER_VIEW_OWN_LOGIN_HISTORY, "Xem lịch sử đăng nhập của bản thân")
+                new Permission(USER_VIEW_OWN_LOGIN_HISTORY, "Xem lịch sử đăng nhập của bản thân"),
+                
+                // Branch permissions
+                new Permission(BRANCH_VIEW, "Xem chi nhánh"),
+                new Permission(BRANCH_CREATE, "Tạo chi nhánh"),
+                new Permission(BRANCH_UPDATE, "Cập nhật chi nhánh"),
+                new Permission(BRANCH_DELETE, "Xóa chi nhánh"),
+                new Permission(BRANCH_READ, "Đọc thông tin chi nhánh")
         );
 
         permissionRepository.saveAll(permissions);
@@ -112,6 +126,26 @@ public class PermissionRoleInitializer {
                 permMap.get(USER_VIEW_OWN_LOGIN_HISTORY)
         );
 
+        // Teacher: quyền giáo viên (có thể xem logs, quản lý một số thông tin)
+        Set<Permission> teacherPerms = Set.of(
+                permMap.get(USER_TOKEN_MANAGEMENT),
+                permMap.get(TOKEN_INVALIDATE_OWN),
+                permMap.get(TOKEN_VIEW_OWN),
+                permMap.get(USER_VIEW_OWN_LOGIN_HISTORY),
+                permMap.get(LOG_VIEW_ACTIVITY),
+                permMap.get(BRANCH_VIEW),
+                permMap.get(BRANCH_READ)
+        );
+
+        // Student: quyền sinh viên (chỉ quản lý thông tin cá nhân)
+        Set<Permission> studentPerms = Set.of(
+                permMap.get(TOKEN_INVALIDATE_OWN),
+                permMap.get(TOKEN_VIEW_OWN),
+                permMap.get(USER_VIEW_OWN_LOGIN_HISTORY),
+                permMap.get(BRANCH_VIEW),
+                permMap.get(BRANCH_READ)
+        );
+
         roleRepository.save(Role.builder()
                 .name("ADMIN")
                 .permissions(adminPerms)
@@ -120,6 +154,16 @@ public class PermissionRoleInitializer {
         roleRepository.save(Role.builder()
                 .name("MEMBER")
                 .permissions(memberPerms)
+                .build());
+
+        roleRepository.save(Role.builder()
+                .name("TEACHER")
+                .permissions(teacherPerms)
+                .build());
+
+        roleRepository.save(Role.builder()
+                .name("STUDENT")
+                .permissions(studentPerms)
                 .build());
 
         log.debug("✅ Created {} roles", roleRepository.count());

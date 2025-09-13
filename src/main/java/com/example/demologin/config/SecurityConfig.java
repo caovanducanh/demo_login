@@ -49,7 +49,11 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http , CustomOAuth2SuccessHandler customOAuth2SuccessHandler, CustomOAuth2FailureHandler customOAuth2FailureHandler) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http, 
+            CustomOAuth2SuccessHandler customOAuth2SuccessHandler, 
+            CustomOAuth2FailureHandler customOAuth2FailureHandler,
+            BranchAwareOAuth2AuthorizationRequestResolver branchAwareOAuth2AuthorizationRequestResolver) throws Exception {
         // Lấy danh sách các public endpoints từ annotation @PublicEndpoint
         List<String> annotatedPublicEndpoints = publicEndpointHandlerMapping.getPublicEndpoints();
         
@@ -73,7 +77,12 @@ public class SecurityConfig {
                             "/webjars/**",
                             // OAuth2 system endpoints (Spring Security tự động tạo)
                             "/login/oauth2/code/**",
-                            "/oauth2/authorization/**"
+                            "/oauth2/authorization/**",
+                            // Branch selection endpoints (public for branch selection before OAuth2)
+                            "/api/branches",
+                            "/api/branches/select",
+                            "/api/branches/validate-email",
+                            "/api/branches/oauth2-url"
                     ).permitAll();
                     
                     // Tất cả các API endpoints khác cần authentication
@@ -87,11 +96,17 @@ public class SecurityConfig {
                         .failureUrl("/api/oauth2/failure")
                         .successHandler(customOAuth2SuccessHandler)
                         .failureHandler(customOAuth2FailureHandler)
+                        .authorizationEndpoint(authorization ->
+                                authorization.authorizationRequestResolver(branchAwareOAuth2AuthorizationRequestResolver))
                 )
                 .formLogin(AbstractHttpConfigurer::disable)
                 .httpBasic(AbstractHttpConfigurer::disable)
                 .userDetailsService(authenticationService)
-                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .sessionManagement(session -> session
+                        .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(1)
+                        .maxSessionsPreventsLogin(false)
+                )
                 .addFilterBefore(filter, UsernamePasswordAuthenticationFilter.class)
                 .build();
     }

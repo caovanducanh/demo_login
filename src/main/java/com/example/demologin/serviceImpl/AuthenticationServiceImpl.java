@@ -23,6 +23,7 @@ import com.example.demologin.service.AuthenticationService;
 
 import com.example.demologin.service.RefreshTokenService;
 import com.example.demologin.service.TokenService;
+import com.example.demologin.service.BranchService;
 import com.example.demologin.utils.EmailUtils;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,9 @@ public class AuthenticationServiceImpl implements AuthenticationService {
 
     private final RoleRepository roleRepository;
 
-    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, @Lazy AuthenticationManager authenticationManager, TokenService tokenService, RefreshTokenService refreshTokenService, UserActivityLogRepository userActivityLogRepository, RoleRepository roleRepository) {
+    private final BranchService branchService;
+
+    public AuthenticationServiceImpl(UserRepository userRepository, PasswordEncoder passwordEncoder, @Lazy AuthenticationManager authenticationManager, TokenService tokenService, RefreshTokenService refreshTokenService, UserActivityLogRepository userActivityLogRepository, RoleRepository roleRepository, BranchService branchService) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationManager = authenticationManager;
@@ -83,6 +86,7 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         this.refreshTokenService = refreshTokenService;
         this.userActivityLogRepository = userActivityLogRepository;
         this.roleRepository = roleRepository;
+        this.branchService = branchService;
     }
 
     @Override
@@ -511,5 +515,53 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         String token = tokenService.generateTokenForUser(user);
 
     return UserMapper.toLoginResponse(user, token, refreshToken.getToken());
+    }
+
+    @Override
+    public LoginResponse getUserResponse(String email, String name, String branchCode) {
+        // Validate email for the branch
+        if (!branchService.validateEmailForBranch(email, branchCode)) {
+            throw new RuntimeException("Email not allowed for selected branch");
+        }
+        
+        // Get branch entity
+        com.example.demologin.entity.Branch branch = branchService.getBranchEntityByCode(branchCode);
+        
+        User user = userRepository.findByEmail(email).orElse(null);
+        if (user == null) {
+            Set<com.example.demologin.entity.Role> roles = new HashSet<>();
+            roles.add(roleRepository.findByName("STUDENT").orElseThrow(() -> new NotFoundException("Role STUDENT not found")));
+            
+            user = new User(
+                    email.substring(0, email.indexOf('@')),
+                    passwordEncoder.encode(""),
+                    name != null ? name : "",
+                    email,
+                    "",
+                    ""
+            );
+            
+            user.setStatus(UserStatus.ACTIVE);
+            user.setCreatedAt(LocalDateTime.now());
+            user.setIdentityCard("");
+            user.setDateOfBirth(LocalDateTime.now().toLocalDate());
+            user.setGender(Gender.OTHER);
+            user.setRoles(roles);
+            user.setVerify(true);
+            user.setBranch(branch);
+            
+            user = userRepository.save(user);
+        } else {
+            // Update existing user's branch if needed
+            if (user.getBranch() == null || !user.getBranch().getId().equals(branch.getId())) {
+                user.setBranch(branch);
+                user = userRepository.save(user);
+            }
+        }
+
+        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        String token = tokenService.generateTokenForUser(user);
+
+        return UserMapper.toLoginResponse(user, token, refreshToken.getToken());
     }
 } 

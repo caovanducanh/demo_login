@@ -15,6 +15,7 @@ import com.example.demologin.service.AuthenticationService;
 import com.example.demologin.service.RefreshTokenService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -93,5 +94,25 @@ import org.springframework.web.bind.annotation.*;
                description = "Authenticate user with Facebook OAuth token")
     public Object loginWithFacebook(@RequestBody FacebookLoginRequest request) {
         return authenticationService.authenticateWithFacebook(request);
+    }
+
+    @PublicEndpoint
+    @GetMapping("/oauth2/tokens")
+    @ApiResponse(message = "OAuth2 tokens retrieved successfully")
+    @Operation(summary = "Get OAuth2 tokens from session", 
+               description = "Retrieve OAuth2 tokens stored in session after successful authentication")
+    public Object getOAuth2Tokens(HttpServletRequest request) {
+        String token = (String) request.getSession().getAttribute("oauth2_token");
+        String refreshToken = (String) request.getSession().getAttribute("oauth2_refresh_token");
+        
+        if (token != null && refreshToken != null) {
+            // Clear tokens from session after retrieval
+            request.getSession().removeAttribute("oauth2_token");
+            request.getSession().removeAttribute("oauth2_refresh_token");
+            
+            return new LoginResponse(token, refreshToken);
+        } else {
+            throw new RuntimeException("No OAuth2 tokens found in session");
+        }
     }
 }

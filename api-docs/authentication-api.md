@@ -15,140 +15,124 @@ Bạn có thể dùng các tài khoản này để đăng nhập và test các A
 
 # Authentication API
 
-Các API xác thực, đăng nhập, đăng ký, làm mới token, đăng nhập Google/Facebook, OAuth2.
+API xác thực với hỗ trợ đăng nhập theo chi nhánh (Branch-aware Authentication).
 
-## 1. Đăng ký tài khoản
-- **Endpoint:** `POST /api/register`
-- **Request body:**
-```json
-{
-  "username": "string",
-  "password": "string",
-  "confirmPassword": "string",
-  "fullName": "string",
-  "dateOfBirth": "yyyy-MM-dd",
-  "gender": "MALE | FEMALE | OTHER",
-  "email": "string",
-  "identityCard": "05088997658",
-  "phone": "+84987654321",
-  "address": "string"
-}
-```
+## 🏢 Branch-Aware Authentication
+
+Hệ thống hỗ trợ đăng nhập Google OAuth2 theo chi nhánh.
+
+### Quick Start OAuth2 Flow
+1. **Lấy danh sách chi nhánh**: `GET /api/branches`
+2. **Đăng nhập Google với branch**: `/oauth2/authorization/google?branch=HCM`
+
+---
+
+## 📋 Branch Management APIs
+
+### 1. Get Available Branches
+- **Endpoint:** `GET /api/branches`
+- **Description:** Lấy danh sách tất cả chi nhánh active để hiển thị UI chọn chi nhánh
 - **Response:**
 ```json
-{
-  "statusCode": 200,
-  "message": "Đăng ký thành công",
-  "data": {
-    "userId": 1,
-    "username": "string",
-    "fullName": "string",
-    "email": "string",
-    "phone": "+84987654321",
-    "address": "string",
-    "dateOfBirth": "yyyy-MM-dd",
-    "identityCard": "05088997658",
-    "gender": "MALE | FEMALE | OTHER",
-    "status": "ACTIVE",
-    "createdDate": "2025-08-20T10:00:00",
-    "token": "jwt-access-token",
-    "refreshToken": "jwt-refresh-token"
+[
+  {
+    "id": 1,
+    "name": "Ho Chi Minh Campus",
+    "code": "HCM",
+    "address": "590 Cach Mang Thang Tam, District 3, Ho Chi Minh City",
+    "allowedEmails": [
+      "anhcvdse182894@fpt.edu.vn",
+      "teacher1@fpt.edu.vn",
+      "admin.hcm@fpt.edu.vn"
+    ],
+    "active": true,
+    "createdAt": "2025-09-13T10:30:00"
+  },
+  {
+    "id": 2,
+    "name": "Ha Noi Campus", 
+    "code": "HN",
+    "address": "Hoa Lac Hi-Tech Park, Km 29, Dai Mo, Thach That, Hanoi",
+    "allowedEmails": [
+      "student.hn@fpt.edu.vn",
+      "teacher.hn@fpt.edu.vn",
+      "admin.hn@fpt.edu.vn"
+    ],
+    "active": true,
+    "createdAt": "2025-09-13T10:30:00"
   }
-}
+]
 ```
 
-## 2. Đăng nhập
-- **Endpoint:** `POST /api/login`
-- **Request:**
-```json
-{
-  "username": "string",
-  "password": "string"
-}
+---
+
+## 📋 Tài khoản mặc định
+
+Hệ thống khởi tạo sẵn các tài khoản mẫu:
+
+### Default Users
+- **Admin**
+  - username: `admin`
+  - password: `admin123`
+  - role: `ADMIN`
+- **Member**
+  - username: `member`
+  - password: `member123`
+  - role: `MEMBER`
+
+### Test Users for Branches
+- **HCM Branch**: `anhcvdse182894@fpt.edu.vn` (STUDENT role)
+- **HN Branch**: Các email trong danh sách allowed
+
+---
+
+## 🌐 OAuth2 Google Authentication
+
+### 1. Google OAuth2 Login với Branch
+- **Endpoint:** `GET /oauth2/authorization/google?branch={branchCode}`
+- **Description:** Khởi tạo Google OAuth2 flow với branch context
+- **Parameters:**
+  - `branch`: Mã chi nhánh (HCM, HN)
+- **Example:** `http://localhost:8080/oauth2/authorization/google?branch=HCM`
+- **Process:**
+  1. User chọn chi nhánh trên frontend
+  2. Frontend redirect trực tiếp tới `/oauth2/authorization/google?branch=HCM`
+  3. Google OAuth2 flow
+  4. Hệ thống validate email với branch trong URL parameter
+  5. Tạo/cập nhật user với branch assignment
+  6. Generate JWT token
+  7. Redirect về frontend với token
+
+### 2. OAuth2 Success Response
+- **Endpoint:** `GET /login/oauth2/code/google` (Google callback)
+- **Success:** Redirect về frontend với JWT token
+- **Error:** Redirect về error page với message
+
+### 3. Error Responses cho Frontend
+Khi OAuth2 login thất bại, hệ thống sẽ redirect về frontend với error parameter:
+
+#### Email không được phép cho chi nhánh
 ```
-- **Response:**
-```json
-{
-  "status": 200,
-  "message": "Đăng nhập thành công",
-  "data": {
-    "accessToken": "...",
-    "refreshToken": "..."
-  }
-}
+GET /login?error=Email_not_allowed_for_selected_branch
 ```
 
-## 3. Làm mới token
-- **Endpoint:** `POST /api/refresh-token`
-- **Request:**
-```json
-{
-  "refreshToken": "string"
-}
+#### Chi nhánh không tồn tại
 ```
-- **Response:**
-```json
-{
-  "status": 200,
-  "message": "Token refreshed successfully",
-  "data": {
-    "accessToken": "...",
-    "refreshToken": "..."
-  }
-}
+GET /login?error=Branch_not_found
 ```
 
-## 4. Đăng nhập Google
-- **Endpoint:** `POST /api/google-login`
-- **Request:**
-```json
-{
-  "token": "google_id_token"
-}
-```
-- **Response:**
-```json
-{
-  "status": 200,
-  "message": "Google login successful",
-  "data": { ... }
-}
+#### Thiếu branch parameter
+```  
+GET /login?error=Branch_parameter_required
 ```
 
-## 5. OAuth2 login success
-- **Endpoint:** `GET /api/oauth2/success`
-- **Response:**
-```json
-{
-  "status": 200,
-  "message": "OAuth2 login successful",
-  "data": { ... }
-}
+#### OAuth2 authentication failed
+```
+GET /login?error=OAuth2_authentication_failed
 ```
 
-## 6. OAuth2 login failure
-- **Endpoint:** `GET /api/oauth2/failure`
-- **Response:**
-```json
-{
-  "status": 401,
-  "message": "OAuth2 login failed"
-}
-```
+### 4. Test Accounts
+- **HCM Branch**: `anhcvdse182894@fpt.edu.vn` (STUDENT role)
+- **HN Branch**: Các email trong danh sách allowed của HN
 
-## 7. Đăng nhập Facebook
-- **Endpoint:** `POST /api/facebook-login`
-- **Request:**
-```json
-{
-  "token": "facebook_access_token"
-}
-```
-- **Response:**
-```json
-{
-  "status": 200,
-  "message": "Facebook login successful",
-  "data": { ... }
-}
-```
+---

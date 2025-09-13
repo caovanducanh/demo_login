@@ -76,6 +76,10 @@ public class User implements UserDetails {
     @Column(name = "is_locked", nullable = false)
     private boolean locked = false;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "branch_id", nullable = true)
+    private Branch branch;
+
     // Constructors
     public User() {}
 
@@ -252,6 +256,14 @@ public class User implements UserDetails {
     
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 
     @Override

@@ -1,5 +1,6 @@
 package com.example.demologin.initializer;
 
+import com.example.demologin.initializer.components.BranchDataInitializer;
 import com.example.demologin.initializer.components.DefaultUserInitializer;
 import com.example.demologin.initializer.components.PermissionRoleInitializer;
 import lombok.RequiredArgsConstructor;
@@ -17,7 +18,8 @@ import org.springframework.stereotype.Component;
  * Execution Order:
  * 1. PermissionRoleInitializer - Creates permissions and roles
  * 2. DefaultUserInitializer - Creates default users with assigned roles
- * 3. Future initializers can be added here with proper ordering
+ * 3. BranchDataInitializer - Creates branches and allowed emails
+ * 4. Future initializers can be added here with proper ordering
  */
 @Component
 @RequiredArgsConstructor
@@ -27,6 +29,7 @@ public class MainDataInitializer implements CommandLineRunner {
 
     private final PermissionRoleInitializer permissionRoleInitializer;
     private final DefaultUserInitializer defaultUserInitializer;
+    private final BranchDataInitializer branchDataInitializer;
 
     @Override
     public void run(String... args) throws Exception {
@@ -43,9 +46,14 @@ public class MainDataInitializer implements CommandLineRunner {
             defaultUserInitializer.initializeDefaultUsers();
             log.info("✅ Default Users initialization completed");
             
+            // Step 3: Initialize Branch Data
+            log.info("🏢 Step 3: Initializing Branch Data...");
+            branchDataInitializer.initializeBranchData();
+            log.info("✅ Branch Data initialization completed");
+            
             // Future initialization steps can be added here
             // Example:
-            // log.info("📊 Step 3: Initializing System Settings...");
+            // log.info("📊 Step 4: Initializing System Settings...");
             // systemSettingsInitializer.initializeSettings();
             
             log.info("🎉 Main Data Initialization Process completed successfully!");

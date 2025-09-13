@@ -5,29 +5,31 @@ import com.example.demologin.entity.User;
 import com.example.demologin.enums.ActivityType;
 import com.example.demologin.repository.UserRepository;
 import com.example.demologin.service.AuthenticationService;
+import com.example.demologin.service.BranchService;
 import com.example.demologin.service.UserActivityLogService;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.Base64;
 
 @Component
 @RequiredArgsConstructor
+@Slf4j
 public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
 
     private final AuthenticationService authenticationService;
 
+    private final BranchService branchService;
 
     private final UserActivityLogService userActivityLogService;
 
@@ -43,21 +45,38 @@ public class CustomOAuth2SuccessHandler implements AuthenticationSuccessHandler 
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
         
+        // Get branch code from session or request parameter
+        String branchCode = request.getParameter("branch");
+        if (branchCode == null) {
+            branchCode = (String) request.getSession().getAttribute("selectedBranch");
+        }
+        
         if (email == null) {
             response.sendRedirect(frontendUrl + "login?error=missing_email");
             return;
         }
         
+        if (branchCode == null) {
+            response.sendRedirect(frontendUrl + "login?error=missing_branch_selection");
+            return;
+        }
+        
         try {
-            LoginResponse userResponse = authenticationService.getUserResponse(email, name);
+            // Validate email domain for selected branch
+            if (!branchService.validateEmailForBranch(email, branchCode)) {
+                throw new RuntimeException("Email domain not allowed for selected branch");
+            }
             
-            // Log successful OAuth2 login
+            LoginResponse userResponse = authenticationService.getUserResponse(email, name, branchCode);
+            
+            // Keep the full token with signature (same as regular login)
+            String token = userResponse.getToken();
+            
             User user = userRepository.findByEmail(email).orElse(null);
             userActivityLogService.logUserActivity(user, ActivityType.LOGIN_ATTEMPT, 
-                "OAuth2 login successful via " + getProviderName(authentication));
+                "OAuth2 login successful via " + getProviderName(authentication) + " for branch: " + branchCode);
             
-            String redirectUrl = frontendUrl + "login?token=" + userResponse.getToken() + "&refreshToken="
-                    + userResponse.getRefreshToken();
+            String redirectUrl = frontendUrl + "login?token=" + token + "&refreshToken=" + userResponse.getRefreshToken();
             response.sendRedirect(redirectUrl);
             
         } catch (Exception e) {
