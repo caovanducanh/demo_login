@@ -15,7 +15,6 @@ public class BranchResponse {
     private String name;
     private String code;
     private String address;
-    private List<String> allowedEmails;
     private Boolean active;
     private LocalDateTime createdAt;
 }

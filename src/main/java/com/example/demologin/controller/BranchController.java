@@ -42,7 +42,7 @@ public class BranchController {
     @GetMapping("/validate-email")
     @Operation(summary = "Validate email for branch", 
                description = "Check if email is allowed for selected branch")
-    public Boolean validateEmailForBranch(
+    public Object validateEmailForBranch(
             @Parameter(description = "Email address") @RequestParam String email,
             @Parameter(description = "Branch code") @RequestParam String branchCode) {
         
@@ -55,7 +55,7 @@ public class BranchController {
     @UserActivity(activityType = ActivityType.ADMIN_ACTION, details = "Branch creation")
     @Operation(summary = "Create new branch", 
                description = "Create a new branch (admin only)")
-    public BranchResponse createBranch(@RequestBody @Valid CreateBranchRequest request) {
+    public Object createBranch(@RequestBody @Valid CreateBranchRequest request) {
         return branchService.createBranch(request);
     }
     
@@ -64,7 +64,7 @@ public class BranchController {
     @ApiResponse(message = "Branch retrieved successfully")
     @Operation(summary = "Get branch by ID", 
                description = "Get branch details by ID")
-    public BranchResponse getBranchById(@PathVariable Long id) {
+    public Object getBranchById(@PathVariable Long id) {
         return branchService.getBranchById(id);
     }
     
@@ -74,7 +74,7 @@ public class BranchController {
     @UserActivity(activityType = ActivityType.ADMIN_ACTION, details = "Branch update")
     @Operation(summary = "Update branch", 
                description = "Update branch information (admin only)")
-    public BranchResponse updateBranch(
+    public Object updateBranch(
             @PathVariable Long id, 
             @RequestBody @Valid UpdateBranchRequest request) {
         return branchService.updateBranch(id, request);
@@ -119,7 +119,7 @@ public class BranchController {
     @SecuredEndpoint("BRANCH_READ")
     @Operation(summary = "Get allowed emails for branch")
     @ApiResponse
-    public List<String> getAllowedEmails(@PathVariable Long branchId) {
+    public Object getAllowedEmails(@PathVariable Long branchId) {
         return branchService.getAllowedEmailsForBranch(branchId);
     }
 }

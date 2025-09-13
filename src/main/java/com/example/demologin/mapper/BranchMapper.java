@@ -20,15 +20,7 @@ public class BranchMapper {
         response.setName(branch.getName());
         response.setCode(branch.getCode());
         response.setAddress(branch.getAddress());
-        
-        // Get allowed emails from the relationship
-        List<String> allowedEmails = branch.getAllowedEmails() != null ? 
-                branch.getAllowedEmails().stream()
-                        .filter(BranchAllowedEmail::getActive)
-                        .map(BranchAllowedEmail::getEmail)
-                        .collect(Collectors.toList()) : 
-                List.of();
-        response.setAllowedEmails(allowedEmails);
+
         
         response.setActive(branch.getActive());
         response.setCreatedAt(branch.getCreatedAt());
