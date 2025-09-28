@@ -17,11 +17,7 @@ public class UserMapper {
                 user.getUserId(),
                 user.getUsername(),
                 user.getEmail(),
-                user.getIdentityCard(),
                 user.getFullName(),
-                user.getPhone(),
-                user.getAddress(),
-                user.getDateOfBirth(),
                 user.getStatus(),
                 roleName
         );
@@ -31,13 +27,8 @@ public class UserMapper {
                 userRequest.getUsername(),
                 null, // password will be set elsewhere
                 userRequest.getFullname(),
-                userRequest.getEmail(),
-                userRequest.getPhone(),
-                userRequest.getAddress()
+                userRequest.getEmail()
         );
-        
-        user.setDateOfBirth(userRequest.getDateOfBirth());
-        user.setIdentityCard(userRequest.getIdentity_Card());
         user.setStatus(UserStatus.ACTIVE); // Default status
         
         return user;

@@ -110,15 +110,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     request.getUsername(),
                     passwordEncoder.encode(request.getPassword()),
                     request.getFullName(),
-                    request.getEmail(),
-                    request.getPhone(),
-                    request.getAddress()
+                    request.getEmail()
             );
             
             // Set fields
-            newUser.setDateOfBirth(request.getDateOfBirth());
             newUser.setGender(request.getGender());
-            newUser.setIdentityCard(request.getIdentityCard());
             newUser.setRoles(roles);
             newUser.setStatus(UserStatus.ACTIVE);
             
@@ -235,16 +231,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         email.substring(0, email.indexOf('@')),
                         passwordEncoder.encode(""),
                         name != null ? name : "",
-                        email,
-                        "",
-                        ""
+                        email
                 );
                 
                 user.setRoles(roles);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setCreatedAt(LocalDateTime.now());
-                user.setIdentityCard("");
-                user.setDateOfBirth(LocalDateTime.now().toLocalDate());
                 user.setGender(com.example.demologin.enums.Gender.OTHER);
                 user.setVerify(true);
                 user.setStatus(UserStatus.ACTIVE);
@@ -400,16 +392,12 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                         email.substring(0, email.indexOf('@')),
                         passwordEncoder.encode(""),
                         name != null ? name : (firstName + " " + lastName),
-                        email,
-                        "",
-                        location != null ? location : ""
+                        email
                 );
                 
                 user.setRoles(roles);
                 user.setStatus(UserStatus.ACTIVE);
                 user.setCreatedAt(LocalDateTime.now());
-                user.setIdentityCard("");
-                user.setDateOfBirth(parseBirthday(birthday));
                 user.setGender(parseGender(gender));
                 user.setVerify(true);
                 
@@ -418,10 +406,6 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                 boolean updated = false;
                 if (name != null && !name.equals(user.getFullName())) {
                     user.setFullName(name);
-                    updated = true;
-                }
-                if (location != null && !location.equals(user.getAddress())) {
-                    user.setAddress(location);
                     updated = true;
                 }
                 if (!user.getRoles().stream().anyMatch(r -> r.getName().equals("MEMBER"))) {
@@ -489,15 +473,11 @@ public class AuthenticationServiceImpl implements AuthenticationService {
                     email.substring(0, email.indexOf('@')),
                     passwordEncoder.encode(""),
                     name != null ? name : "",
-                    email,
-                    "",
-                    ""
+                    email
             );
             
             user.setStatus(UserStatus.ACTIVE);
             user.setCreatedAt(LocalDateTime.now());
-            user.setIdentityCard("");
-            user.setDateOfBirth(LocalDateTime.now().toLocalDate());
             user.setGender(Gender.OTHER);
             user.setRoles(roles);
             user.setVerify(true);
