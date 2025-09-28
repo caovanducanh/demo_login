@@ -43,6 +43,18 @@ public class User implements UserDetails {
     private String email;
 
 
+    @Column(nullable = false, length = 15)
+    private String phone;
+
+    @Column(nullable = false, length = 255)
+    private String address;
+
+    @Column(nullable = false, length = 255)
+    private String identityCard ;
+
+    @Column(nullable = false)
+    private LocalDate dateOfBirth;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 10)
     private UserStatus status;
@@ -64,18 +76,16 @@ public class User implements UserDetails {
     @Column(name = "is_locked", nullable = false)
     private boolean locked = false;
 
-    @ManyToOne
-    @JoinColumn(name = "class_id")
-    private ClassEntity classEntity;
-
     // Constructors
     public User() {}
 
-    public User(String username, String password, String fullName, String email) {
+    public User(String username, String password, String fullName, String email, String phone, String address) {
         this.username = username;
         this.password = password;
         this.fullName = fullName;
         this.email = email;
+        this.phone = phone;
+        this.address = address;
         this.locked = false;
         this.roles = new HashSet<>();
     }
@@ -175,7 +185,38 @@ public class User implements UserDetails {
     public void setFullName(String fullName) {
         this.fullName = fullName;
     }
-
+    
+    public String getPhone() {
+        return phone;
+    }
+    
+    public void setPhone(String phone) {
+        this.phone = phone;
+    }
+    
+    public String getAddress() {
+        return address;
+    }
+    
+    public void setAddress(String address) {
+        this.address = address;
+    }
+    
+    public String getIdentityCard() {
+        return identityCard;
+    }
+    
+    public void setIdentityCard(String identityCard) {
+        this.identityCard = identityCard;
+    }
+    
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+    
+    public void setDateOfBirth(LocalDate dateOfBirth) {
+        this.dateOfBirth = dateOfBirth;
+    }
     
     public UserStatus getStatus() {
         return status;
@@ -211,14 +252,6 @@ public class User implements UserDetails {
     
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
-    }
-
-    public ClassEntity getClassEntity() {
-        return classEntity;
-    }
-    
-    public void setClassEntity(ClassEntity classEntity) {
-        this.classEntity = classEntity;
     }
 
     @Override

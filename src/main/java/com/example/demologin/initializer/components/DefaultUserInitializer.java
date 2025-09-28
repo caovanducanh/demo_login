@@ -11,6 +11,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -68,11 +70,15 @@ public class DefaultUserInitializer {
                 username,
                 passwordEncoder.encode(rawPassword),
                 username + " Fullname",
-                username + "@example.com"
+                username + "@example.com",
+                "0123456789",
+                "123 Main Street"
         );
         
         // Set additional properties
         user.setRoles(roles);
+        user.setIdentityCard("123456789");
+        user.setDateOfBirth(LocalDate.of(1995, 1, 1));
         user.setStatus(UserStatus.ACTIVE);
         user.setGender(Gender.OTHER);
         user.setTokenVersion(0);
